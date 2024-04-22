@@ -1,8 +1,11 @@
 ---
 title: "HW1"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 date: "2024-04-08"
 ---
+
 Q0 A: My name is Ruyue Wang and my preferred name is Jasmine.
 
 Q0 B: I have read and understood the entire syllabus.
@@ -14,7 +17,7 @@ Q0 D: I hope I can get more familiar and confident while using R in the future.
 Q2 A: The function generate_data takes a single integer argument n, representing the number of data points to generate. It ensures that n is a positive integer. It then generates a vector sample_vec of length n, where each element is sampled from one of three distributions based on the values in the vector idx_vec, which is sampled from a uniform distribution over {1, 2, 3}. Specifically, elements with value 1 are sampled from a normal distribution with mean 10 and standard deviation 1, elements with value 2 are sampled from a gamma distribution with shape parameter 2 and scale parameter 2, and elements with value 3 are sampled from a chi-squared distribution with 3 degrees of freedom. The function returns the resulting vector sample_vec.
 
 Q2 B: 
-```{r histogram-plots, echo=FALSE, message=FALSE, warning=FALSE, fig.show='asis'}
+```{r histogram-plots, echo=TRUE, message=FALSE, warning=FALSE, fig.show='asis'}
 # Load necessary library
 library(ggplot2)
 
@@ -43,7 +46,7 @@ Q3 A: The head(df) function output displays the first six rows of the dataset, g
 
 Q3 B: dim() function can be used to print out the dimensionality of df. The class of df is shown as.
 
-```{r class,echo = FALSE}
+```{r class,echo = TRUE}
 df <- read.csv("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/homework1/sea-ad.csv")
 class(df)
 ```
@@ -54,7 +57,7 @@ Q3 C:
 
 Ensure the data frame is correctly loaded and displayed.
 
-```{r setup-df, echo=FALSE}
+```{r setup-df, echo=TRUE}
 # Example data frame definition
 df <- read.csv("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/homework1/sea-ad.csv")
 # Replace "90+" with "90"
@@ -68,7 +71,7 @@ hist(df$Age.at.Death, main="Histogram of Age at Death", xlab="Age", ylab="Freque
 ```
 
 Q3 D:
-```{r convert-factors, echo=FALSE}
+```{r convert-factors, echo=TRUE}
 # Assuming df is correctly defined and loaded with data
 if(nrow(df) > 0) {
   df$Sex <- as.factor(df$Sex)
@@ -87,14 +90,14 @@ summary(df)
 Q3 E: The summary in Question 3E is more informative because it provides specific counts and distributions for categorical variables and detailed statistics for numerical variables, allowing for a clearer understanding of the dataset's characteristics and any potential imbalances or outliers
 
 Q3 F: 
-```{r table, echo=FALSE}
+```{r table, echo=TRUE}
 # Display the relationship between Braak stages and Cognitive Status
 table(df$Braak, df$Cognitive.Status)
 ```
 
 Q3 G:
-```{r global-options, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+```{r global-options, echo=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
 
 df <- read.csv("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/homework1/sea-ad.csv")
 
@@ -115,4 +118,3 @@ quantile_cognitive_table <- table(df$Score.Quantiles, df$Cognitive.Status)
 quantile_cognitive_table
 ```
 The table shows that higher Last.CASI.Scores, which fall into the 3rd and 4th quartiles, are predominantly associated with "No dementia," indicating that higher cognitive scores might be linked to lower instances of dementia. Conversely, the majority of "Dementia" cases are concentrated in the 1st quartile, suggesting that lower scores are strongly correlated with higher occurrences of dementia.
-
