@@ -1,0 +1,270 @@
+---
+title: "HW2"
+output: html_document
+date: "2024-04-22"
+---
+Q0
+
+Q0 C:
+```{r}
+# Specify a CRAN mirror for package installation
+cran_mirror <- "https://cran.rstudio.com/"
+
+# Install necessary packages
+packages <- c("bookdown", "tidyverse", "ggplot2", "devtools", "roxygen2", "usethis")
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = cran_mirror)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# Set the path for the new package
+path_to_package <- "/Users/wangruyue/Desktop/UWBiost561"
+
+# Check if the directory is appropriately prepared for a new package
+if (length(list.files(path_to_package)) == 0) {
+  # Create the package without trying to open it in RStudio
+  usethis::create_package(path = path_to_package, open = FALSE)
+  
+  # Set working directory to the new package
+  setwd(path_to_package)
+
+  # Add and use roxygen2 for documentation
+  usethis::use_roxygen_md()
+
+  # Assuming here you will add functions and documentation as needed...
+
+  # Document the package
+  roxygen2::roxygenise()
+
+  # Install the package locally
+  devtools::install()
+  
+  # Load the package
+  library(UWBiost561)
+} else {
+  message("Directory is not empty. Ensure it's the right path or clear it before creating the package.")
+}
+```
+Q0 D:
+```{r}
+setwd("/Users/wangruyue/Desktop/UWBiost561/vignettes")  # Adjust path as needed
+# List files in the current directory
+files <- list.files()
+print(files)
+# Define the expected files
+expected_files <- c("HW1.html", "HW1.Rmd", "HW2.Rmd", "HW2.html")
+
+# Check for unexpected files
+unexpected_files <- setdiff(files, expected_files)
+if (length(unexpected_files) > 0) {
+  cat("Unexpected files found:", unexpected_files, "\n")
+}
+
+# Check if any expected files are missing
+missing_files <- setdiff(expected_files, files)
+if (length(missing_files) > 0) {
+  cat("Missing files:", missing_files, "\n")
+}
+# Check for .gitignore and delete it
+if (".gitignore" %in% files) {
+  file.remove(".gitignore")
+  cat(".gitignore file found and deleted.\n")
+} else {
+  cat("No .gitignore file present.\n")
+}
+# List files again to confirm the current state
+final_files <- list.files()
+print(final_files)
+```
+
+Q1
+
+Q1 A:
+```{r}
+library(tidyverse)
+
+country_population <- readr::read_csv("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/HW2_files/country_population.csv")
+
+# Filter the data for years 1990 to 2010 and calculate the mean population for each country
+country_population_summary <- country_population %>%
+  filter(year >= 1990, year <= 2010) %>%
+  group_by(iso3c, country) %>%
+  summarize(mean_population = mean(population, na.rm = TRUE)) %>%
+  ungroup() 
+
+print(country_population_summary)
+```
+
+Q1 B:
+```{r}
+country_birth <- readr::read_csv("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/HW2_files/country_birth.csv")
+country_birth
+library(tidyverse)
+
+country_birth_summary <- country_birth %>%
+  filter(year >= 1990 & year <= 2010) %>%                # Select years between 1990 and 2010
+  select(iso3c, year, life_expect) %>%                   # Keep only specified columns
+  drop_na() %>%                                          # Drop rows with any NA values
+  group_by(iso3c) %>%                                    # Group by country code
+  summarize(
+    min_life_expect = min(life_expect),                  # Calculate minimum life expectancy
+    max_life_expect = max(life_expect)                   # Calculate maximum life expectancy
+  ) %>%
+  mutate(range_life_expect = max_life_expect - min_life_expect)  # Calculate range of life expectancy
+
+country_birth_summary
+```
+
+Q1 C:
+```{r}
+library(tidyverse)
+
+# Assuming 'country_population' and 'country_birth' have been previously created and are in your workspace
+
+# Join the datasets
+country_both <- inner_join(country_population, country_birth, by = "iso3c")
+
+# Print out the first 10 rows
+print(slice(country_both, 1:10))
+
+# Get the dimensions of the combined dataset
+dim(country_both)
+```
+The country_both has 343980 rows and 8 columns.
+
+Q2
+
+Q2 A:
+```{r}
+penguins <- readr::read_csv("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/HW2_files/palmerpenguins.csv")
+penguins
+penguins %>%
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm)) +
+  geom_point()
+# Count the number of rows (penguins) in the dataset
+num_penguins <- nrow(penguins)
+
+# Create the scatter plot
+penguins_plot <- penguins %>%
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm, color = species)) +
+  geom_point() +
+  scale_color_manual(values = c("Adelie" = "cornflowerblue", "Chinstrap" = "coral2", "Gentoo" = "goldenrod3")) +
+  labs(
+    title = paste("Relation among", num_penguins, "penguins"),
+    x = "Bill Depth (mm)",
+    y = "Bill Length (mm)",
+    color = "species"
+  )
+
+# Print the plot
+print(penguins_plot)
+```
+
+Q1 B:
+```{r}
+library(tidyverse)
+
+# Load the penguins dataset
+penguins <- readr::read_csv("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/HW2_files/palmerpenguins.csv")
+
+# Create the scatter plot with the additional modifications
+penguins_plot <- penguins %>%
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm, color = species)) +
+  geom_point(alpha = 0.5) +  # Set transparency to 50%
+  geom_smooth(method = "lm", se = FALSE) +  # Add linear regression fit without standard error band
+  facet_wrap(~species) +  # Facet the plot by species
+  scale_color_manual(values = c("Adelie" = "cornflowerblue", "Chinstrap" = "coral2", "Gentoo" = "goldenrod3")) +
+  labs(
+    title = paste("Relation among", nrow(penguins), "penguins"),
+    x = "Bill Depth (mm)",
+    y = "Bill Length (mm)",
+    color = "species"
+  ) +
+  theme_minimal()  # Optional: Adds a minimal theme
+
+# Print the plot
+print(penguins_plot)
+```
+
+Q3
+
+Q3 A:
+
+The function takes three arguments: the number of nodes n, the fraction of these nodes that will form a clique clique_fraction, and the density of edges in the non-clique part of the graph density_low. The result is an adjacency matrix (adj_mat), where each cell contains either a 1 (if an edge is present) or a 0 (if no edge is present), describing the connections between each pair of nodes in the graph. The function returns a list containing the adjacency matrix and a vector indicating which nodes are part of the clique.
+
+Q3 B:
+
+The pivot_longer_heatmap() function is designed to reshape a matrix into a "long" data frame format suitable for plotting with ggplot2. Specifically for heatmaps, data must be in a three-column format, where each row represents a single tile of the heatmap. It assigns row and column names if they are not already assigned. It uses the melt() function from the reshape2 package (or a similar operation with tidyr::pivot_longer()) to transform the adjacency matrix into a long data frame. This process involves "melting" the matrix, so each element of the matrix becomes a row in the data frame. The resulting data frame has three columns: 'X' for the row number, 'Y' for the column number, and 'Value' for the elements of the matrix (1s and 0s from the adjacency matrix). In this long format, each row corresponds to the position of a node connection (X, Y) and the value (presence or absence of an edge) in the adjacency matrix. This long format is necessary for ggplot2 to plot each value of the adjacency matrix as a square or "tile" on the heatmap, where 'X' and 'Y' determine the position of the tile, and 'Value' determines its fill color.
+
+If adj_mat[1,1] is 1, adj_mat[1,2] is 0, and adj_mat[1,3] is 1, then in mat_long, you would see the first three rows as:
+X = 1, Y = 1, Value = 1
+X = 1, Y = 2, Value = 0
+X = 1, Y = 3, Value = 1
+
+Q3 C:
+
+```{r}
+library(ggplot2)
+source("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/HW2_files/random_graph_functions.R")
+set.seed(0)
+result <- generate_random_graph(n = 20,
+                                clique_fraction = 0.5,
+                                density_low = 0.1)
+adj_mat <- result$adj_mat
+dim(adj_mat)
+adj_mat[1:5,1:5]
+mat_long <- pivot_longer_heatmap(adj_mat)
+mat_long
+# Plot the heatmap
+heatmap_plot <- ggplot(mat_long, aes(x = X, y = Y, fill = factor(Value))) +
+  geom_tile() +
+  scale_fill_manual(values = c("0" = "palegoldenrod", "1" = "coral2")) +
+  coord_fixed(ratio = 1) +
+  labs(fill = "Value", x = "Column", y = "Row") +
+  theme_minimal()  # For a minimalistic design
+
+# Print the heatmap plot
+print(heatmap_plot)
+```
+
+Q3 D:
+
+```{r}
+library(tidyverse)
+source("https://raw.githubusercontent.com/linnykos/561_s2024_public/main/HW2_files/random_graph_functions.R")
+
+# Set seed for reproducibility
+set.seed(0)
+
+# Generate the random graph adjacency matrix
+result <- generate_random_graph(n = 20, clique_fraction = 0.5, density_low = 0.1)
+
+# Permute the rows and columns of the adjacency matrix
+adj_mat2 <- result$adj_mat[result$rev_order, result$rev_order]
+
+# Convert adj_mat2 to long format for ggplot
+mat_long2 <- pivot_longer_heatmap(adj_mat2)
+
+# Plot the heatmap
+heatmap_plot2 <- ggplot(mat_long2, aes(x = X, y = Y, fill = factor(Value))) +
+  geom_tile() +
+  scale_fill_manual(values = c("0" = "palegoldenrod", "1" = "coral2")) +
+  coord_fixed(ratio = 1) +
+  labs(fill = "Value", x = "Column", y = "Row") +
+  theme_minimal()
+
+# Print the heatmap plot
+print(heatmap_plot2)
+```
+
+Q4
+
+1. Test against adjacency matrices where the maximal cliques are known. This includes simple cases with a single clique or no cliques, and more complex graphs where the cliques are documented, perhaps from a curated dataset in graph theory literature.
+
+2. Generate large random graphs with varying densities and structures, including some with planted cliques of known sizes. This helps in checking if the function can handle high-complexity inputs and if it scales well with the size of the graph.
+
+3. Use the function in conjunction with other clique-finding algorithms or software, where possible, to cross-verify results. Discrepancies can help identify specific situations where the function may fail.
+
+4. Consider edge cases such as an empty graph, a complete graph (every node is connected to every other node), and graphs with isolated nodes (no connections). Ensuring the function behaves as expected in these situations is critical for validating its general correctness.

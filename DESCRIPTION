@@ -8,9 +8,18 @@ Description: What the package does (one paragraph).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
+Imports:
+    knitr,
+    rmarkdown,
+    bookdown,
+    tidyverse,
+    ggplot2
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Suggests: 
-    knitr,
-    rmarkdown
+Suggests: ,
+  bookdown,
+  tidyverse,
+  ggplot2,
+  knitr,
+  rmarkdown
 VignetteBuilder: knitr
