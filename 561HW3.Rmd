@@ -1,0 +1,164 @@
+---
+title: "HW2"
+output: html_document
+date: "2024-05-05"
+---
+
+Question 1.
+
+A.
+```{r}
+generate_partial_clique <- function(n, clique_fraction, clique_edge_density) {
+  
+  # Input checks
+  stopifnot(is.numeric(n), n >= 1, n == round(n))
+  stopifnot(is.numeric(clique_fraction), clique_fraction >= 0, clique_fraction <= 1)
+  stopifnot(is.numeric(clique_edge_density), clique_edge_density >= 0, clique_edge_density <= 1)
+  
+  # Determine clique size and number of edges
+  clique_size <- round(n * clique_fraction)
+  num_edges <- round(clique_edge_density * clique_size * (clique_size - 1) / 2)
+  
+  # Generate adjacency matrix with partial clique
+  adj_mat <- matrix(0, nrow = n, ncol = n)
+  diag(adj_mat) <- 1
+  
+  # Create partial clique
+  clique_nodes <- sample(1:n, clique_size)
+  clique_edges <- rbind(combn(clique_nodes, 2), clique_nodes)
+  clique_edges <- clique_edges[, sample(ncol(clique_edges), num_edges)]
+  adj_mat[clique_edges] <- 1
+  adj_mat <- adj_mat + t(adj_mat)
+  
+  return(list(adj_mat = adj_mat))
+}
+
+```
+
+D.
+```{r}
+library(UWBiost561)
+
+# Generate a partial clique with 20 nodes, 40% clique fraction, and 0.8 clique edge density
+set.seed(123)
+partial_clique <- generate_partial_clique(n = 20, clique_fraction = 0.4, clique_edge_density = 0.8)
+partial_clique_adj_mat <- partial_clique$adj_mat
+
+# Print the adjacency matrix
+print(partial_clique_adj_mat)
+```
+
+
+Question 2.
+A.
+```{r}
+compute_maximal_partial_clique <- function(adj_mat, alpha) {
+  # Validate inputs
+  stopifnot(is.matrix(adj_mat),
+            all(adj_mat == t(adj_mat)),
+            all(diag(adj_mat) == 1),
+            is.null(dimnames(adj_mat)),
+            nrow(adj_mat) >= 5,
+            nrow(adj_mat) <= 50,
+            is.numeric(alpha),
+            length(alpha) == 1,
+            alpha >= 0.5,
+            alpha <= 1)
+
+  n <- nrow(adj_mat)
+  
+  # Initialize best solution found
+  best_clique_idx <- integer(0)
+  best_edge_density <- 0
+
+  # Test all possible subsets of nodes
+  # Note: This brute-force approach is not computationally feasible for larger matrices
+  for (size in n:1) {
+    if (best_edge_density >= alpha) break  # Early exit if good enough solution found
+    
+    combn(n, size, function(nodes) {
+      submat <- adj_mat[nodes, nodes]
+      num_edges <- sum(submat) / 2
+      possible_edges <- size * (size - 1) / 2
+      current_density <- num_edges / possible_edges
+      
+      if (current_density >= alpha && current_density > best_edge_density) {
+        best_clique_idx <<- nodes
+        best_edge_density <<- current_density
+      }
+    }, simplify = FALSE)
+  }
+  
+  # Return the result
+  return(list(clique_idx = best_clique_idx, edge_density = best_edge_density))
+}
+
+# Example usage with a small test adjacency matrix
+set.seed(123)
+test_matrix <- matrix(sample(0:1, 25, replace = TRUE, prob = c(0.7, 0.3)), 5, 5)
+diag(test_matrix) <- 1
+test_matrix <- (test_matrix + t(test_matrix)) > 0
+alpha <- 0.75
+
+result <- compute_maximal_partial_clique(test_matrix, alpha)
+print(result)
+```
+
+C.
+```{r}
+library(UWBiost561)
+
+# Set seed for reproducibility
+set.seed(0)
+
+# Generate a partial clique using predefined parameters
+simulation <- UWBiost561::generate_partial_clique(
+  n = 10,                   # Number of nodes
+  clique_fraction = 0.5,    # Fraction of nodes in the clique
+  clique_edge_density = 0.9 # Edge density within the clique
+)
+
+# Extract the adjacency matrix from the simulation output
+adj_mat <- simulation$adj_mat
+
+# Now compute the maximal partial clique using the adjacency matrix
+res <- UWBiost561::compute_maximal_partial_clique(
+  adj_mat = adj_mat,
+  alpha = 0.9  # Required edge density
+)
+# Output the result
+print(res)
+```
+
+Question 4.
+
+C.
+
+D.
+```{r}
+devtools::session_info()
+```
+
+Question 5.
+
+A.
+
+I can access OpenSesame.
+
+B.
+
+For my final project, I am considering developing an R package that focuses on financial data analysis, specifically aimed at trend analysis and prediction for stock prices. This project would involve:
+
+Data Retrieval Functions: I plan to include functions that can retrieve historical stock price data from public APIs such as Yahoo Finance or Alpha Vantage.
+
+Analysis Tools: These functions will implement various financial analysis techniques, including moving averages, exponential smoothing, and perhaps more complex predictive models using time series analysis and machine learning.
+
+Visualization Capabilities: To help users understand trends and patterns, I will include functions that generate informative plots showing historical price movements, trends, and predictions.
+
+Unit Tests: I will write comprehensive unit tests for all functions to ensure reliability and correctness, using the testthat package.
+
+Documentation: Every function will have detailed documentation that explains the parameters, the output, and includes examples. This documentation will be crucial for users who are not familiar with financial analysis.
+
+Vignette: A detailed vignette will guide users through typical use cases, from data retrieval to analysis and visualization. It will demonstrate how to use the package with real or synthetic data (if real-time data fetching is problematic due to API limitations).
+
+README and PkgDown Website: The README will outline the purpose of the package and how to install it, while the PkgDown website will provide an easily navigable interface to the full documentation, vignettes, and other resources.
