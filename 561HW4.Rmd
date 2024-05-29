@@ -1,0 +1,304 @@
+---
+title: "561HW4"
+output: html_document
+date: "2024-05-28"
+---
+
+Q1 C:Use more descriptive variable names. For instance, instead of i or j, use node_index or clique_candidate to indicate their roles in the algorithm. Include comments within the function to describe key steps, especially if the algorithm is complex.
+
+Q1 D:
+
+```{r setup, include=FALSE}
+library(testthat)
+
+# Assuming UWBiost561 is your package and compute_maximal_partial_clique16 is part of it
+# Load the package
+library(UWBiost561)
+
+# Alternatively, source the function directly if it's in an R script file
+source("/Users/wangruyue/Desktop/UWBiost561/R/compute_maximal_partial_clique16.R")
+```
+```{r compute_maximal_partial_clique16_tests, error=TRUE}
+library(testthat)
+
+# Ensure the function is available
+if(!exists("compute_maximal_partial_clique16")) {
+  stop("Function compute_maximal_partial_clique16 is not available. Ensure it is loaded correctly.")
+}
+
+# Helper function to add self-loops to the adjacency matrix
+add_self_loops <- function(mat) {
+  diag(mat) <- 1
+  return(mat)
+}
+
+test_that("compute_maximal_partial_clique16 handles empty graph", {
+  # Since the function requires at least a 5x5 matrix, we'll create a 5x5 empty matrix with self-loops
+  graph <- add_self_loops(matrix(0, 5, 5))
+  result <- compute_maximal_partial_clique16(graph, alpha = 0.5)
+  expect_equal(result, list(clique_idx = integer(0), edge_density = 0))
+})
+
+test_that("compute_maximal_partial_clique16 finds single node clique", {
+  # 5x5 matrix with only one node connected to itself
+  graph <- add_self_loops(matrix(0, 5, 5))
+  graph[1, 1] <- 1
+  result <- compute_maximal_partial_clique16(graph, alpha = 0.5)
+  expect_equal(result, list(clique_idx = c(1), edge_density = 0))
+})
+
+test_that("compute_maximal_partial_clique16 finds two node clique", {
+  # 5x5 matrix with two nodes connected to each other
+  graph <- add_self_loops(matrix(0, 5, 5))
+  graph[1, 2] <- 1
+  graph[2, 1] <- 1
+  result <- compute_maximal_partial_clique16(graph, alpha = 0.5)
+  expect_equal(result, list(clique_idx = c(1, 2), edge_density = 1))
+})
+
+test_that("compute_maximal_partial_clique16 handles disconnected nodes", {
+  # 5x5 matrix with disconnected nodes
+  graph <- add_self_loops(matrix(0, 5, 5))
+  graph[1, 2] <- 1
+  graph[2, 1] <- 1
+  result <- compute_maximal_partial_clique16(graph, alpha = 0.5)
+  expect_true(any(result$clique_idx %in% c(1, 2)))
+})
+
+test_that("compute_maximal_partial_clique16 finds three node clique", {
+  # 5x5 matrix with three nodes forming a clique
+  graph <- add_self_loops(matrix(0, 5, 5))
+  graph[1, 2] <- 1
+  graph[2, 1] <- 1
+  graph[1, 3] <- 1
+  graph[3, 1] <- 1
+  graph[2, 3] <- 1
+  graph[3, 2] <- 1
+  result <- compute_maximal_partial_clique16(graph, alpha = 0.5)
+  expect_equal(result, list(clique_idx = c(1, 2, 3), edge_density = 1))
+})
+```
+
+Q2 A:
+
+```{r}
+# Load the UWBiost561 package
+library(UWBiost561)
+
+# Set the seed for reproducibility
+set.seed(10)
+
+# Generate partial clique data with n = 50
+data <- UWBiost561::generate_partial_clique(n = 50, 
+                                            clique_fraction = 0.5,
+                                            clique_edge_density = 0.95)
+
+# Run compute_maximal_partial_clique_master with a very small time_limit to force a timeout
+set.seed(10)
+result1 <- UWBiost561::compute_maximal_partial_clique_master(
+  adj_mat = data$adj_mat, 
+  alpha = 0.95, 
+  number = 11, 
+  time_limit = 2  # Set time_limit to 2 seconds to force a timed_out status
+)
+
+# Print the result to see the timed_out status
+print(result1)
+
+```
+
+Q2 B:
+
+1. Generating Random Graphs for Analysis
+I will generate the random graphs using the generate_partial_clique() function. This function creates an adjacency matrix representing a graph with n nodes. A fraction of these nodes form a clique with a given edge density. For example, setting clique_fraction = 0.5 and clique_edge_density = 0.95 means that 50% of the nodes form a clique where 95% of the possible edges within the clique are present. This function allows us to control the size and density of the clique, making it useful for studying how different graph structures affect the performance of various algorithms.
+
+2. Varying the Random Graphs
+In my simulation study, I will vary the number of nodes (n) and the clique edge density (clique_edge_density). Specifically, I will analyze two levels of n: 30 and 50. For each level of n, I will test two levels of clique_edge_density: 0.85 and 0.95. This variation will allow me to study how the size and density of the graph impact the performance of the algorithms.
+
+3. Methods Used in the Simulation Study
+I will use all 25 implementations of the compute_maximal_partial_clique function. Each method will be used on every adjacency matrix generated in the simulation study. The compute_maximal_partial_clique_master() function will be used to manage these implementations, ensuring consistency and proper timing controls.
+
+4. Goals of the Simulation Study
+The primary goal of this simulation study is to understand the performance of different compute_maximal_partial_clique implementations under varying conditions of graph size and density. Specifically, I aim to:
+
+Determine how often each method finds the maximal partial clique.
+Compare the performance (success rate and execution time) of the methods across different graph structures.
+Identify any trends or patterns in the performance of the methods as the graph size and density change.
+5. Number of Trials per Level
+For each combination of n and clique_edge_density, I will run 10 trials. This should provide enough data to observe trends and make meaningful comparisons between the different implementations.
+
+6. Estimated Time for the Simulation Study
+Given the constraints and requirements:
+
+Number of levels for n: 2 (30 and 50)
+Number of levels for clique_edge_density: 2 (0.85 and 0.95)
+Number of trials per level: 10
+Number of methods: 25
+Maximum time per method per trial: 30 seconds
+The total number of problem instances is:
+2×2×10×25=1000
+
+The maximum estimated time is: 
+1000 × 30 seconds= 30000 seconds ≈ 8.3hours
+
+Given the constraint to keep the simulation study under 5 hours, I will either reduce the number of trials per level or decrease the time_limit from 30 seconds to a smaller value (e.g., 15 seconds) to ensure the study runs within the allowed time.
+
+Summary of the Simulation Plan
+Random Graph Generation: Using generate_partial_clique() with varying n and clique_edge_density.
+Levels:
+n: 30 and 50
+clique_edge_density: 0.85 and 0.95
+Methods: All 25 implementations of compute_maximal_partial_clique.
+Goals: Assess success rate and execution time of each method, identify trends across different graph structures.
+Trials per Level: 10 trials.
+Maximum Time: Adjusted to ensure the simulation completes within 5 hours, potentially reducing the time limit for each trial.
+
+Q3
+```{r}
+# Load the UWBiost561 package
+library(UWBiost561)
+
+# Define the parameters for the simulation
+n_values <- c(30, 50)
+clique_fractions <- c(0.5)
+edge_densities <- c(0.85, 0.95)
+alpha <- 0.95
+trials <- 10  # Increase trials for full simulation study
+time_limit <- 30  # Maximum time limit for each method
+
+# Run the simulation
+simulation_results <- run_simulation(n_values, clique_fractions, edge_densities, alpha, trials, time_limit)
+
+# Save the results
+save(simulation_results, file = "~/HW4_simulation.RData")
+# Load the necessary libraries
+library(UWBiost561)
+library(ggplot2)
+
+# Load the simulation results
+load("~/HW4_simulation.RData")
+
+# Extract and organize the results for visualization
+results_list <- do.call(rbind, lapply(simulation_results, function(res) {
+  do.call(rbind, lapply(res, function(method_result) {
+    data.frame(
+      time_out = method_result$time_out,
+      error = method_result$error,
+      valid = method_result$valid,
+      size = method_result$size,
+      method = names(res),
+      stringsAsFactors = FALSE
+    )
+  }))
+}))
+
+# Create a data frame for visualization
+results_df <- do.call(rbind, results_list)
+
+# Plot the success rate of each method
+success_rate_plot <- ggplot(results_df, aes(x = method, fill = valid)) +
+  geom_bar(position = "fill") +
+  labs(title = "Success Rate of Each Method", x = "Method", y = "Success Rate") +
+  theme_minimal()
+
+# Print the plot
+print(success_rate_plot)
+
+# Plot the average size of the cliques found by each method
+average_size_plot <- ggplot(results_df[results_df$valid == TRUE,], aes(x = method, y = size)) +
+  geom_boxplot() +
+  labs(title = "Average Size of Cliques Found by Each Method", x = "Method", y = "Clique Size") +
+  theme_minimal()
+
+# Print the plot
+print(average_size_plot)
+
+```
+
+Q3 E:
+
+```{r}
+# Load the UWBiost561 package
+library(UWBiost561)
+
+# Define the parameters for the simulation
+n_values <- c(30, 50)
+clique_fractions <- c(0.5)
+edge_densities <- c(0.85, 0.95)
+alpha <- 0.95
+trials <- 10  # Increase trials for full simulation study
+time_limit <- 30  # Maximum time limit for each method
+
+# Run the simulation
+simulation_results <- run_simulation(n_values, clique_fractions, edge_densities, alpha, trials, time_limit)
+
+# Save the results
+save(simulation_results, file = "~/HW4_simulation.RData")
+# Load necessary libraries
+library(ggplot2)
+
+# Load the simulation results
+load("~/HW4_simulation.RData")
+
+# Extract and organize the results for visualization
+results_list <- lapply(simulation_results, function(res) {
+  do.call(rbind, lapply(res, function(method_result) {
+    data.frame(
+      time_out = method_result$time_out,
+      error = method_result$error,
+      valid = method_result$valid,
+      size = ifelse(method_result$valid, method_result$size, NA),
+      method = names(res),
+      stringsAsFactors = FALSE
+    )
+  }))
+})
+
+# Combine results into a single data frame
+results_df <- do.call(rbind, results_list)
+
+# Create a plot showing the success rate of each method
+success_rate_plot <- ggplot(results_df, aes(x = method, fill = as.factor(valid))) +
+  geom_bar(position = "fill") +
+  labs(title = "Success Rate of Each Method", x = "Method", y = "Success Rate", fill = "Valid") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Save the success rate plot
+ggsave("HW4_simulation_success_rate.png", plot = success_rate_plot, width = 10, height = 6)
+
+# Create a plot showing the average size of the cliques found by each method
+average_size_plot <- ggplot(results_df[results_df$valid == TRUE,], aes(x = method, y = size)) +
+  geom_boxplot() +
+  labs(title = "Average Size of Cliques Found by Each Method", x = "Method", y = "Clique Size") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Save the average size plot
+ggsave("HW4_simulation_average_size.png", plot = average_size_plot, width = 10, height = 6)
+
+# Print plots to the console
+print(success_rate_plot)
+print(average_size_plot)
+
+# Load knitr for including graphics
+library(knitr)
+
+## Include the plots from the simulation study
+knitr::include_graphics("/Users/wangruyue/Desktop/UWBiost561/vignettes/HW4_simulation_success_rate.png")
+knitr::include_graphics("/Users/wangruyue/Desktop/UWBiost561/vignettes/HW4_simulation_average_size.png")
+```
+
+Q4:
+
+For my final project, I plan to create a PkgDown website for the UWBiost561 package. This package will include functions related to the analysis and simulation of partial cliques in random graphs. The package will have the following components:
+
+Functions: generate_partial_clique: Generates random graphs with a specified fraction of nodes forming a partial clique.
+compute_maximal_partial_clique_master: Finds the maximal partial clique using various implementations.
+run_simulation: Performs a simulation study to evaluate the performance of different maximal partial clique implementations.
+
+Documentation: Comprehensive documentation for each exported function, including descriptions of inputs, outputs, and examples of usage.
+
+Vignette: A vignette that demonstrates how to use the package functions, including generating random graphs, finding maximal partial cliques, and performing a small simulation study.
+
+README: A README file that explains the purpose of the package, provides installation instructions, and includes links to the GitHub repository and PkgDown website.
