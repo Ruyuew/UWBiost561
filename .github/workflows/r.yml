@@ -1,0 +1,18 @@
+# _pkgdown.yml
+destination: docs
+url: 'https://yourusername.github.io/mypackage'
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [reference, articles]
+  right: []
+
+reference:
+  title: "Reference"
+  contents:
+    - starts_with("compute_")
+
+articles:
+  title: "Get Started"
