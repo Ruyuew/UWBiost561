@@ -1,13 +1,13 @@
-# _pkgdown.yml
 destination: docs
-url: 'https://yourusername.github.io/mypackage'
+url: 'https://Ruyuew.github.io/UWBiost561'
+
 template:
   bootstrap: 5
 
 navbar:
   structure:
     left: [reference, articles]
-  right: []
+    right: []
 
 reference:
   title: "Reference"
