@@ -1,0 +1,50 @@
+---
+title: "Getting Started with MyPackage"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with MyPackage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(mypackage)
+```
+
+## Introduction
+
+This vignette demonstrates how to use the `mypackage` functions.
+
+## Generating Data
+
+We first generate some example data:
+
+```{r}
+set.seed(123)
+data <- matrix(sample(0:1, 100, replace = TRUE), 10, 10)
+data[lower.tri(data)] <- t(data)[lower.tri(data)]
+diag(data) <- 1
+```
+
+## Using the Functions
+
+### Function 1
+
+```{r}
+result1 <- compute_maximal_partial_clique1(data, alpha=0.7, method="simple")
+print(result1)
+```
+
+### Function 2
+
+```{r}
+result2 <- compute_maximal_partial_clique2(data, alpha=0.7)
+print(result2)
+```
+
+### Function 3
+
+```{r}
+result3 <- compute_maximal_partial_clique3(data, alpha=0.7)
+print(result3)
+```
